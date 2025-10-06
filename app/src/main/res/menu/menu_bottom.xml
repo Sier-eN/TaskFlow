@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/home"
+        android:title="@string/home"
+        android:icon="@drawable/sukien"/>
+    <item android:id="@+id/baothuc"
+        android:title="@string/baothuc"
+        android:icon="@drawable/baothuc"/>
+    <item android:id="@+id/thoigianbieu"
+        android:title="@string/thoigianbieu"
+        android:icon="@drawable/thoigianbieu"/>
+<!--    <item android:id="@+id/themtgb"-->
+<!--        android:title="@string/themtgb"-->
+<!--        android:icon="@drawable/themtgb"/>-->
+</menu>

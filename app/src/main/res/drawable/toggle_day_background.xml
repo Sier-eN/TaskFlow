@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Khi ToggleButton được chọn -->
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mauxanh"/> <!-- màu xanh giống hình bạn gửi -->
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+
+    <!-- Khi ToggleButton không chọn -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/black"/> <!-- nền mặc định -->
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+
+</selector>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_bottomsheet">
+
+    <!-- ScrollView chứa nội dung -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <View
+                android:layout_width="40dp"
+                android:layout_height="4dp"
+                android:layout_gravity="center"
+                android:background="@android:color/darker_gray"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Time Picker -->
+            <TimePicker
+                android:id="@+id/timePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:timePickerMode="clock"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Chọn ngày lặp -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp">
+
+                <ToggleButton
+                    android:id="@+id/tbT2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T2"
+                    android:textOff="T2"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbT3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T3"
+                    android:textOff="T3"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbT4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T4"
+                    android:textOff="T4"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbT5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T5"
+                    android:textOff="T5"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbT6"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T6"
+                    android:textOff="T6"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbT7"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="T7"
+                    android:textOff="T7"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+
+                <ToggleButton
+                    android:id="@+id/tbCN"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textOn="CN"
+                    android:textOff="CN"
+                    android:background="@drawable/toggle_day_background"
+                    android:textColor="@color/mautrangnhathon"
+                    android:padding="8dp"/>
+            </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chọn nhạc chuông"
+                android:textColor="@color/mautrangnhathon"
+                android:fontFamily="@font/robotocondensed"
+                android:textSize="16sp"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="start"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardChonNhac"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeColor="@android:color/transparent"
+                app:rippleColor="?attr/colorControlHighlight">
+
+                <LinearLayout
+                    android:id="@+id/layoutChonNhac"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@color/maunensanghon"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:id="@+id/imgChonNhac"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        app:tint="@color/mautrangnhathon"
+                        android:src="@drawable/music"
+                        android:contentDescription="Chọn nhạc"/>
+
+                    <TextView
+                        android:id="@+id/tvTenNhac"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:fontFamily="@font/robotocondensed"
+                        android:layout_weight="1"
+                        android:text="Chưa chọn nhạc"
+                        android:textColor="@color/mautrangnhathon"
+                        android:textSize="16sp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Nút Lưu ở góc dưới bên phải -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cvLuu"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="20dp"
+        app:strokeColor="@android:color/transparent"
+        android:backgroundTint="@color/green_dark"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        >
+
+        <ImageView
+            android:id="@+id/imgLuu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:src="@drawable/save"
+            app:tint="@color/white"
+            android:contentDescription="Lưu" />
+    </com.google.android.material.card.MaterialCardView>
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cvXoa"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="20dp"
+        app:strokeColor="@android:color/transparent"
+        android:backgroundTint="@color/do_dam3"
+        android:foreground="?attr/selectableItemBackgroundBorderless"
+        >
+
+        <ImageView
+            android:id="@+id/imgXoa"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp"
+            android:src="@drawable/xoa"
+            app:tint="@color/white"
+            android:contentDescription="Lưu" />
+    </com.google.android.material.card.MaterialCardView>
+    
+</FrameLayout>

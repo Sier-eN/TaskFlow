@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center"
+            android:background="@android:color/darker_gray"
+            android:layout_marginBottom="12dp" />
+        <EditText
+            android:id="@+id/edt_title"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Tên hoạt động"
+            android:textColorHint="@color/maunensanghon"
+            android:textColor="@color/maunensanghon"
+            android:background="@drawable/bg_edittext"
+            android:padding="8dp"/>
+
+        <EditText
+            android:id="@+id/edt_date"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Ngày (yyyy-MM-dd)"
+            android:background="@drawable/bg_edittext"
+            android:focusable="false"
+            android:textColorHint="@color/maunensanghon"
+            android:textColor="@color/maunensanghon"
+            android:padding="8dp"
+            android:layout_marginTop="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:weightSum="2">
+
+            <EditText
+                android:id="@+id/edt_start_time"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:textColorHint="@color/maunensanghon"
+                android:hint="Bắt đầu (HH:mm)"
+                android:textColor="@color/maunensanghon"
+                android:focusable="false"
+                android:background="@drawable/bg_edittext"
+                android:padding="8dp"/>
+
+            <EditText
+                android:id="@+id/edt_end_time"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="48dp"
+                android:textColor="@color/maunensanghon"
+                android:hint="Kết thúc (HH:mm)"
+                android:textColorHint="@color/maunensanghon"
+                android:focusable="false"
+                android:background="@drawable/bg_edittext"
+                android:padding="8dp"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/img_color"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/color"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_circle"
+            android:contentDescription="Chọn màu"
+            android:padding="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="end">
+
+            <ImageView
+                android:id="@+id/img_delete"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/xoa"
+                android:contentDescription="Xóa"
+                android:visibility="gone"
+                android:padding="8dp"
+                android:layout_marginEnd="8dp"/>
+
+            <ImageView
+                android:id="@+id/img_save"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/save"
+                android:contentDescription="Lưu"
+                android:padding="8dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

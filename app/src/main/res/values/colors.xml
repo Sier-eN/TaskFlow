@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#121212</color>
+    <color name="maunensanghon">#1E1E1E</color>
+    <color name="white">#FFFFFF</color>
+    <color name="green_dark">#0B6623</color>
+    <color name="mautrangnhathon">#B0B0B0</color>
+    <color name="switch_off_bg">#3A3A3A</color>
+    <color name="switch_off_thumb">#B0B0B0</color>
+    <color name="mauxanh">#1565C0</color>
+    <color name="mauxamnhat">#666666</color>
+    <color name="switch_on">#4CAF50</color>
+    <color name="soft_red">#FF6B6B</color>
+    <color name="do_dam1">#D32F2F</color>
+    <color name="do_dam2">#C62828</color>
+    <color name="do_dam3">#B71C1C</color>
+    <color name="red_soft_medium1">#FF5252</color> <!-- đỏ nhạt vừa, tươi hơn -->
+    <color name="red_soft_medium2">#FF4C4C</color> <!-- đỏ ấm, nổi bật hơn nhưng vẫn dịu -->
+    <color name="red_soft_medium3">#FF3B3B</color> <!-- đỏ đậm hơn, rõ sắc đỏ -->
+
+</resources>

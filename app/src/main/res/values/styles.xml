@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MyApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:timePickerStyle">@style/ClockTimePicker</item>
+    </style>
+
+    <style name="ClockTimePicker" parent="android:Widget.Material.TimePicker">
+        <item name="android:timePickerMode">clock</item>
+    </style>
+
+</resources>
