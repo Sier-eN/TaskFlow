@@ -43,6 +43,19 @@ public class BaoThucActivity extends AppCompatActivity {
 
         baoThucDao = AppDatabase.getInstance(this).baoThucDao();
 
+        int alarmId = getIntent().getIntExtra("id",-1);
+        if(alarmId != -1) {
+            new Thread(() -> {
+                baoThuc = baoThucDao.getById(alarmId);
+                runOnUiThread(() -> {
+                    if (baoThuc != null) {
+                        tvTimeAlarm.setText(baoThuc.getTimeString());
+                        // Nhạc + rung sẽ do Service phát, Activity chỉ hiển thị
+                    }
+                });
+            }).start();
+        }
+
         btnStop.setOnClickListener(v -> stopAlarm());
         btnSnooze.setOnClickListener(v -> snoozeAlarm());
     }
@@ -64,11 +77,14 @@ public class BaoThucActivity extends AppCompatActivity {
 
     private void stopAlarm() {
         // Dừng Service để nhạc và rung tắt
-        Intent serviceIntent = new Intent(this, AlarmService.class);
-        stopService(serviceIntent);
+        stopService(new Intent(this, AlarmService.class));
 
-        if (baoThuc != null) {
-            baoThuc.setBat(0);
+        if(baoThuc != null){
+            // Nếu báo thức hôm nay, tắt hoàn toàn
+            if(baoThuc.isOneTimeToday()){
+                baoThuc.setBat(0);
+            }
+
             new Thread(() -> {
                 baoThucDao.update(baoThuc);
                 AlarmScheduler.huyBaoThuc(this, baoThuc);
@@ -76,6 +92,7 @@ public class BaoThucActivity extends AppCompatActivity {
         }
         finish();
     }
+
 
     private void snoozeAlarm() {
         // Dừng Service

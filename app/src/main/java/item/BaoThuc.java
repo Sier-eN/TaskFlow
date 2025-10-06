@@ -82,6 +82,10 @@ public class BaoThuc {
         if (cn == 1) sb.append("CN ");
         return sb.length() > 0 ? sb.toString().trim() : "Không lặp";
     }
+    public boolean isOneTimeToday() {
+        // Báo thức không lặp lại (t2-t7, cn = 0)
+        return t2 + t3 + t4 + t5 + t6 + t7 + cn == 0;
+    }
 
     public boolean isActive() { return bat == 1; }
 }
