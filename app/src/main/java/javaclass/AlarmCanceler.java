@@ -7,16 +7,17 @@ import android.content.Intent;
 
 import java.util.List;
 
-import Database.DatabaseHelper;
+import Database.AppDatabase;
 import item.BaoThuc;
 
 public class AlarmCanceler {
 
+    // ✅ Hủy toàn bộ báo thức trong cơ sở dữ liệu
     public static void huyTatCaBaoThuc(Context context) {
-        DatabaseHelper dbHelper = new DatabaseHelper(context);
+        AppDatabase db = AppDatabase.getInstance(context);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        List<BaoThuc> danhSach = dbHelper.getAllBaoThuc();
+        List<BaoThuc> danhSach = db.baoThucDao().getAll();
 
         for (BaoThuc baoThuc : danhSach) {
             for (int i = 0; i < 7; i++) {
@@ -38,6 +39,7 @@ public class AlarmCanceler {
         }
     }
 
+    // ✅ Hủy một báo thức cụ thể
     public static void huyBaoThuc(Context context, BaoThuc baoThuc) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 

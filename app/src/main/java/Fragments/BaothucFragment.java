@@ -14,10 +14,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.apptg.R;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import Adapter.BaoThucAdapter;
-import Database.DatabaseHelper;
+import Database.AppDatabase;
+import dao.BaoThucDao;
 import item.BaoThuc;
 import javaclass.ThemBaoThucBottomSheet;
 
@@ -26,8 +29,8 @@ public class BaothucFragment extends Fragment {
     private RecyclerView rvBaoThuc;
     private ImageView ivAdd;
     private BaoThucAdapter adapter;
-    private DatabaseHelper dbHelper;
-    private List<BaoThuc> baoThucList;
+    private List<BaoThuc> baoThucList = new ArrayList<>();
+    private BaoThucDao baoThucDao;
 
     @Nullable
     @Override
@@ -39,49 +42,41 @@ public class BaothucFragment extends Fragment {
         rvBaoThuc = view.findViewById(R.id.rv_baothuc);
         ivAdd = view.findViewById(R.id.img_add);
 
-        dbHelper = new DatabaseHelper(getContext());
-        baoThucList = dbHelper.getAllBaoThuc();
-
         adapter = new BaoThucAdapter(getContext(), baoThucList);
         rvBaoThuc.setLayoutManager(new LinearLayoutManager(getContext()));
         rvBaoThuc.setAdapter(adapter);
 
-        // Click thêm mới
-        ivAdd.setOnClickListener(v -> {
-            ThemBaoThucBottomSheet bottomSheet = ThemBaoThucBottomSheet.newInstance();
-            bottomSheet.setBaoThuc(null); // tạo mới
-            bottomSheet.show(getParentFragmentManager(), "ThemBaoThucBottomSheet");
-        });
+        baoThucDao = AppDatabase.getInstance(requireContext()).baoThucDao();
 
-        // Click sửa báo thức
-        adapter.setOnItemClickListener(baoThuc -> {
-            ThemBaoThucBottomSheet bottomSheet = ThemBaoThucBottomSheet.newInstance();
-            bottomSheet.setBaoThuc(baoThuc); // chỉnh sửa
-            bottomSheet.show(getParentFragmentManager(), "ThemBaoThucBottomSheet");
-        });
+        loadBaoThuc();
 
-        // Lắng nghe refresh dữ liệu từ BaoThucActivity
-        getParentFragmentManager().setFragmentResultListener(
-                "refresh_baothuc", this,
-                (requestKey, bundle) -> refreshData()
-        );
+        ivAdd.setOnClickListener(v -> openBottomSheet(null));
+        adapter.setOnItemClickListener(this::openBottomSheet);
 
         return view;
+    }
+
+    private void loadBaoThuc() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<BaoThuc> list = baoThucDao.getAll();
+            requireActivity().runOnUiThread(() -> {
+                baoThucList.clear();
+                baoThucList.addAll(list);
+                adapter.notifyDataSetChanged();
+            });
+        });
+    }
+
+    private void openBottomSheet(BaoThuc baoThuc) {
+        ThemBaoThucBottomSheet bottomSheet = ThemBaoThucBottomSheet.newInstance();
+        bottomSheet.setBaoThuc(baoThuc);
+        bottomSheet.setListener(this::loadBaoThuc);
+        bottomSheet.show(getParentFragmentManager(), "ThemBaoThucBottomSheet");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh dữ liệu ngay khi fragment hiển thị lại
-        refreshData();
-    }
-
-    private void refreshData() {
-        if (dbHelper == null) return;
-        if (baoThucList == null) return;
-
-        baoThucList.clear();
-        baoThucList.addAll(dbHelper.getAllBaoThuc());
-        adapter.notifyDataSetChanged();
+        loadBaoThuc();
     }
 }

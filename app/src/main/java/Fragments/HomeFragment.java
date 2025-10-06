@@ -1,8 +1,5 @@
 package Fragments;
 
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -18,21 +15,20 @@ import com.example.apptg.CustomCalendar.CustomCalendarView;
 import com.example.apptg.R;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import Adapter.EventAdapter;
-import Database.DatabaseHelper;
-import javaclass.EventAlarmReceiver;
-import javaclass.EventAlarmScheduler;
+import Database.AppDatabase;
+import dao.EventDao;
 import item.EventItem;
 import javaclass.AddEditEventBottomSheet;
+import javaclass.EventAlarmScheduler;
 
 public class HomeFragment extends Fragment {
 
     private RecyclerView rvEvents;
     private EventAdapter adapter;
-    private DatabaseHelper db;
+    private EventDao eventDao;
     private List<EventItem> eventList = new ArrayList<>();
     private View imgAdd;
     private CustomCalendarView calendarView;
@@ -47,12 +43,12 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        db = new DatabaseHelper(requireContext());
+        eventDao = AppDatabase.getInstance(requireContext()).eventDao();
         rvEvents = v.findViewById(R.id.rv_events);
         imgAdd = v.findViewById(R.id.img_add);
         calendarView = v.findViewById(R.id.custom_calendar_view);
 
-        // Adapter với click listener
+        // Adapter có listener khi click vào event
         adapter = new EventAdapter(item -> {
             AddEditEventBottomSheet b = new AddEditEventBottomSheet(this::refreshEventsAndCalendar);
             b.setEditingEvent(item);
@@ -70,47 +66,49 @@ public class HomeFragment extends Fragment {
             b.show(getParentFragmentManager(), "add_event");
         });
 
-        // Click vào ngày trên calendar
+        // Khi chọn ngày trên calendar
         calendarView.setDateSelectedListener(selectedDates -> {
             if (selectedDates == null || selectedDates.isEmpty()) return;
             String dateIso = selectedDates.get(0);
-            List<EventItem> events = db.getEventsByDate(dateIso);
-            if (events == null || events.isEmpty()) return;
-
-            AddEditEventBottomSheet b = new AddEditEventBottomSheet(this::refreshEventsAndCalendar);
-            b.setEditingEvent(events.get(0));
-            b.show(getParentFragmentManager(), "event_sheet");
+            new Thread(() -> {
+                List<EventItem> events = eventDao.getEventsByDate(dateIso);
+                if (events == null || events.isEmpty()) return;
+                requireActivity().runOnUiThread(() -> {
+                    AddEditEventBottomSheet b = new AddEditEventBottomSheet(this::refreshEventsAndCalendar);
+                    b.setEditingEvent(events.get(0));
+                    b.show(getParentFragmentManager(), "event_sheet");
+                });
+            }).start();
         });
 
         refreshEventsAndCalendar();
     }
 
-    /**
-     * Hàm load event từ DB và cập nhật cả RecyclerView + Calendar
-     */
     private void refreshEventsAndCalendar() {
-        eventList = db.getAllEvents();
-        adapter.submitList(new ArrayList<>(eventList)); // copy để DiffUtil so sánh được
+        new Thread(() -> {
+            eventList = eventDao.getAll();
+            requireActivity().runOnUiThread(() -> {
+                adapter.submitList(new ArrayList<>(eventList));
 
-        // Clear calendar cũ
-        calendarView.clearAllMarks();
-        ArrayList<String> eventDates = new ArrayList<>();
-        for (EventItem e : eventList) {
-            eventDates.add(e.getDateIso());
+                calendarView.clearAllMarks();
+                ArrayList<String> eventDates = new ArrayList<>();
+                for (EventItem e : eventList) {
+                    eventDates.add(e.getDateIso());
 
-            int bgColor = safeParseColor(e.getColorHex());
-            int textColor = isColorDark(bgColor)
-                    ? requireContext().getColor(R.color.mautrangnhathon)
-                    : requireContext().getColor(R.color.maunensanghon);
+                    int bgColor = safeParseColor(e.getColorHex());
+                    int textColor = isColorDark(bgColor)
+                            ? requireContext().getColor(R.color.mautrangnhathon)
+                            : requireContext().getColor(R.color.maunensanghon);
 
-            calendarView.setDayColor(e.getDateIso(), bgColor, textColor);
-        }
-        calendarView.setEventDays(eventDates);
+                    calendarView.setDayColor(e.getDateIso(), bgColor, textColor);
+                }
+                calendarView.setEventDays(eventDates);
 
-        // Đặt lại alarm
-        for (EventItem e : eventList) {
-            EventAlarmScheduler.scheduleEventAlarm(requireContext(), e);
-        }
+                for (EventItem e : eventList) {
+                    EventAlarmScheduler.scheduleEventAlarm(requireContext(), e);
+                }
+            });
+        }).start();
     }
 
     private int safeParseColor(String hex) {
@@ -128,5 +126,4 @@ public class HomeFragment extends Fragment {
         double luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         return luminance < 0.5;
     }
-
 }

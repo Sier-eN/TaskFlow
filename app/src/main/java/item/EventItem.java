@@ -1,40 +1,54 @@
 package item;
 
-public class EventItem {
-    private int id;
-    private String title;
-    private String dateIso;
-    private String colorHex;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.Ignore;
 
-    // cache màu dạng int
+@Entity(tableName = "Events")
+public class EventItem {
+
+    @PrimaryKey(autoGenerate = true)
+    private int id;
+
+    private String title;     // Tên sự kiện
+    private String dateIso;   // Ngày (yyyy-MM-dd)
+    private String colorHex;  // Màu (#RRGGBB)
+
+    // Không lưu colorInt vào DB, chỉ dùng tạm trong app
+    @Ignore
     private int colorInt = -1;
 
-    // khi chưa có id (event mới thêm, chưa lưu db)
+    // Constructor chỉ dùng khi tạo mới trong code, Room sẽ bỏ qua
+    @Ignore
     public EventItem(String title, String dateIso, String colorHex) {
-        this.id = -1;
         this.title = title;
         this.dateIso = dateIso;
         this.colorHex = colorHex;
         parseColor();
     }
 
-    // khi đã có id (event lấy từ db)
+    // Constructor chính Room dùng để tạo object từ DB
     public EventItem(int id, String title, String dateIso, String colorHex) {
-        this.id = id;   // ✅ giữ nguyên id thật
+        this.id = id;
         this.title = title;
         this.dateIso = dateIso;
         this.colorHex = colorHex;
         parseColor();
     }
 
+    // --- Getter & Setter ---
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
     public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
     public String getDateIso() { return dateIso; }
-    public void setDateIso(String dateIso) { this.dateIso = dateIso; }
+    public void setDateIso(String dateIso) {
+        this.dateIso = dateIso;
+    }
 
     public String getColorHex() { return colorHex; }
     public void setColorHex(String colorHex) {
@@ -42,7 +56,7 @@ public class EventItem {
         parseColor();
     }
 
-    // trả về màu đã parse, tránh parse lại nhiều lần
+    // Trả về mã màu đã parse
     public int getColorInt() {
         if (colorInt == -1) parseColor();
         return colorInt;

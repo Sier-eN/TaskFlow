@@ -26,8 +26,8 @@ import java.util.Calendar;
 import java.util.List;
 
 import Adapter.ColorAdapter;
-import Database.DatabaseHelper;
-import javaclass.EventAlarmScheduler;
+import Database.AppDatabase;
+import dao.EventDao;
 import item.EventItem;
 
 public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
@@ -40,16 +40,22 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
     private List<String> colorList;
     private String selectedColor = "#FF0000";
     private String selectedDateIso = "";
-    private DatabaseHelper db;
-    private EventItem editingEvent; // nếu null => insert
+    private EventItem editingEvent;
+
+    private EventDao eventDao;
 
     public interface OnChangeListener {
-        void onChanged(); // gọi để HomeFragment reload dữ liệu
+        void onChanged();
     }
     private OnChangeListener changeListener;
 
-    public AddEditEventBottomSheet(OnChangeListener l) { this.changeListener = l; }
-    public void setEditingEvent(EventItem e) { this.editingEvent = e; }
+    public AddEditEventBottomSheet(OnChangeListener l) {
+        this.changeListener = l;
+    }
+
+    public void setEditingEvent(EventItem e) {
+        this.editingEvent = e;
+    }
 
     @NonNull
     @Override
@@ -78,37 +84,23 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
-        db = new DatabaseHelper(requireContext());
+
+        // ✅ Dùng Room Database thay cho DatabaseHelper
+        eventDao = AppDatabase.getInstance(requireContext()).eventDao();
+
         etTitle = v.findViewById(R.id.et_title);
         tvDate = v.findViewById(R.id.tv_date);
         imgSave = v.findViewById(R.id.img_save);
         imgDelete = v.findViewById(R.id.img_delete);
         rvColors = v.findViewById(R.id.rv_colors);
 
-        // Prepare color list
-        colorList = new ArrayList<>();
-        colorList.add("#F44336"); // red
-        colorList.add("#E91E63"); // pink
-        colorList.add("#9C27B0"); // purple
-        colorList.add("#3F51B5"); // indigo
-        colorList.add("#2196F3"); // blue
-        colorList.add("#03A9F4"); // light blue
-        colorList.add("#009688"); // teal
-        colorList.add("#4CAF50"); // green
-        colorList.add("#FF9800"); // orange
-        colorList.add("#FFC107"); // amber
-        colorList.add("#795548"); // brown
-        colorList.add("#607D8B"); // blue grey
-
-        colorAdapter = new ColorAdapter(requireContext(), colorList, (hex, pos) -> selectedColor = hex);
-        rvColors.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        rvColors.setAdapter(colorAdapter);
+        setupColors();
 
         // Date picker
         tvDate.setOnClickListener(vv -> showDatePicker());
         v.findViewById(R.id.btn_pick_date).setOnClickListener(vv -> showDatePicker());
 
-        // Load event data nếu edit
+        // Nếu đang sửa event
         if (editingEvent != null) {
             etTitle.setText(editingEvent.getTitle());
             selectedDateIso = editingEvent.getDateIso();
@@ -123,6 +115,26 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
 
         imgSave.setOnClickListener(vv -> saveEvent());
         imgDelete.setOnClickListener(vv -> deleteEvent());
+    }
+
+    private void setupColors() {
+        colorList = new ArrayList<>();
+        colorList.add("#F44336");
+        colorList.add("#E91E63");
+        colorList.add("#9C27B0");
+        colorList.add("#3F51B5");
+        colorList.add("#2196F3");
+        colorList.add("#03A9F4");
+        colorList.add("#009688");
+        colorList.add("#4CAF50");
+        colorList.add("#FF9800");
+        colorList.add("#FFC107");
+        colorList.add("#795548");
+        colorList.add("#607D8B");
+
+        colorAdapter = new ColorAdapter(requireContext(), colorList, (hex, pos) -> selectedColor = hex);
+        rvColors.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvColors.setAdapter(colorAdapter);
     }
 
     private void showDatePicker() {
@@ -141,35 +153,45 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
 
     private void saveEvent() {
         String title = etTitle.getText().toString().trim();
-        if (title.isEmpty()) { etTitle.setError("Nhập tên"); return; }
-        if (selectedDateIso.isEmpty()) { tvDate.setError("Chọn ngày"); return; }
-
-        if (editingEvent == null) {
-            // Insert mới
-            EventItem e = new EventItem(title, selectedDateIso, selectedColor);
-            long id = db.insertEvent(e);
-            e.setId((int) id); // gán id
-            scheduleEventNotification(e);
-        } else {
-            // Update
-            editingEvent.setTitle(title);
-            editingEvent.setDateIso(selectedDateIso);
-            editingEvent.setColorHex(selectedColor);
-            db.updateEvent(editingEvent);
-            scheduleEventNotification(editingEvent);
+        if (title.isEmpty()) {
+            etTitle.setError("Nhập tên");
+            return;
+        }
+        if (selectedDateIso.isEmpty()) {
+            tvDate.setError("Chọn ngày");
+            return;
         }
 
-        if (changeListener != null) changeListener.onChanged();
-        dismiss();
+        new Thread(() -> {
+            if (editingEvent == null) {
+                EventItem e = new EventItem(title, selectedDateIso, selectedColor);
+                eventDao.insert(e);
+                scheduleEventNotification(e);
+            } else {
+                editingEvent.setTitle(title);
+                editingEvent.setDateIso(selectedDateIso);
+                editingEvent.setColorHex(selectedColor);
+                eventDao.update(editingEvent);
+                scheduleEventNotification(editingEvent);
+            }
+
+            requireActivity().runOnUiThread(() -> {
+                if (changeListener != null) changeListener.onChanged();
+                dismiss();
+            });
+        }).start();
     }
 
     private void deleteEvent() {
-        if (editingEvent != null) {
-            db.deleteEvent(editingEvent.getId());
+        if (editingEvent == null) return;
+        new Thread(() -> {
+            eventDao.delete(editingEvent);
             cancelEventNotification(editingEvent);
-            if (changeListener != null) changeListener.onChanged();
-        }
-        dismiss();
+            requireActivity().runOnUiThread(() -> {
+                if (changeListener != null) changeListener.onChanged();
+                dismiss();
+            });
+        }).start();
     }
 
     // ---------------- Notification logic ----------------
@@ -199,9 +221,7 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
         );
 
         android.app.AlarmManager am = (android.app.AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
-        if (am != null) {
-            am.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pi);
-        }
+        if (am != null) am.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pi);
     }
 
     private void cancelEventNotification(EventItem e) {
@@ -216,8 +236,6 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
         );
 
         android.app.AlarmManager am = (android.app.AlarmManager) requireContext().getSystemService(Context.ALARM_SERVICE);
-        if (am != null) {
-            am.cancel(pi);
-        }
+        if (am != null) am.cancel(pi);
     }
 }

@@ -1,8 +1,6 @@
 package Adapter;
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,24 +11,27 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.apptg.R;
-import Database.DatabaseHelper;
+
+import java.util.List;
+import java.util.concurrent.Executors;
+
+import Database.AppDatabase;
+import dao.BaoThucDao;
 import item.BaoThuc;
 import javaclass.AlarmCanceler;
 import javaclass.AlarmScheduler;
 
-import java.util.List;
-
 public class BaoThucAdapter extends RecyclerView.Adapter<BaoThucAdapter.BaoThucViewHolder> {
 
-    private Context context;
-    private List<BaoThuc> baoThucList;
-    private DatabaseHelper dbHelper;
+    private final Context context;
+    private final List<BaoThuc> baoThucList;
+    private final BaoThucDao baoThucDao;
     private OnItemClickListener listener;
 
     public BaoThucAdapter(Context context, List<BaoThuc> baoThucList) {
         this.context = context;
         this.baoThucList = baoThucList;
-        this.dbHelper = new DatabaseHelper(context);
+        this.baoThucDao = AppDatabase.getInstance(context).baoThucDao();
     }
 
     @NonNull
@@ -38,7 +39,6 @@ public class BaoThucAdapter extends RecyclerView.Adapter<BaoThucAdapter.BaoThucV
     public BaoThucViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(context).inflate(R.layout.thebaothuc, parent, false);
         return new BaoThucViewHolder(view);
-
     }
 
     @Override
@@ -47,81 +47,48 @@ public class BaoThucAdapter extends RecyclerView.Adapter<BaoThucAdapter.BaoThucV
 
         holder.tvTime.setText(baoThuc.getTimeString());
 
-        // Hiển thị ngày lặp
-        int[] ngayTrongTuan = {baoThuc.getT2(), baoThuc.getT3(), baoThuc.getT4(),
-                baoThuc.getT5(), baoThuc.getT6(), baoThuc.getT7(), baoThuc.getCn()};
-        String[] tenThu = {"T2", "T3", "T4", "T5", "T6", "T7", "CN"};
-
-        int countSelected = 0;
+        int[] days = {baoThuc.getT2(), baoThuc.getT3(), baoThuc.getT4(), baoThuc.getT5(),
+                baoThuc.getT6(), baoThuc.getT7(), baoThuc.getCn()};
+        String[] names = {"T2","T3","T4","T5","T6","T7","CN"};
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 7; i++) {
-            if (ngayTrongTuan[i] == 1) {
-                countSelected++;
-                if (sb.length() > 0) sb.append(", ");
-                sb.append(tenThu[i]);
+        int count = 0;
+        for (int i=0;i<7;i++){
+            if (days[i]==1){
+                if(sb.length()>0) sb.append(", ");
+                sb.append(names[i]);
+                count++;
             }
         }
+        if(count==7) holder.tvRepeat.setText("Hằng ngày");
+        else if(count>0) holder.tvRepeat.setText(sb.toString());
+        else holder.tvRepeat.setText(baoThuc.isActive()?"Hôm nay":"Không lặp");
 
-        if (countSelected == 7) {
-            holder.tvRepeat.setText("Hằng ngày");
-        } else if (countSelected > 0) {
-            holder.tvRepeat.setText(sb.toString());
-        } else {
-            holder.tvRepeat.setText(baoThuc.isActive() ? "Hôm nay" : "Không lặp");
-        }
-
-        // Switch bật/tắt
         holder.swAlarm.setOnCheckedChangeListener(null);
         holder.swAlarm.setChecked(baoThuc.isActive());
-        int finalCountSelected = countSelected;
+
+        int finalCount = count;
         holder.swAlarm.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            baoThuc.setBat(isChecked ? 1 : 0);
+            baoThuc.setBat(isChecked?1:0);
+            Executors.newSingleThreadExecutor().execute(() -> baoThucDao.update(baoThuc));
+            if(isChecked) AlarmScheduler.datBaoThuc(context,baoThuc);
+            else AlarmCanceler.huyBaoThuc(context,baoThuc);
 
-            // Cập nhật database
-            ContentValues values = new ContentValues();
-            values.put("bat", baoThuc.getBat());
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
-            db.update(DatabaseHelper.TABLE_ALARM, values, "id=?", new String[]{String.valueOf(baoThuc.getId())});
-            db.close();
-
-            // Bật hoặc hủy báo thức thực tế
-            if (isChecked) {
-                AlarmScheduler.datBaoThuc(context, baoThuc);
-            } else {
-                AlarmCanceler.huyBaoThuc(context, baoThuc);
-            }
-
-            // Cập nhật TextView ngày lặp
-            if (finalCountSelected == 7) {
-                holder.tvRepeat.setText("Hằng ngày");
-            } else if (finalCountSelected > 0) {
-                holder.tvRepeat.setText(isChecked ? sb.toString() : "Không lặp");
-            } else {
-                holder.tvRepeat.setText(isChecked ? "Hôm nay" : "Không lặp");
-            }
+            holder.tvRepeat.setText(finalCount==7?"Hằng ngày":finalCount>0? (isChecked?sb.toString():"Không lặp"):(isChecked?"Hôm nay":"Không lặp"));
         });
 
-        // Click item để sửa
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onItemClick(baoThuc);
-            }
+            if(listener!=null) listener.onItemClick(baoThuc);
         });
     }
-
-
-
-
 
     @Override
     public int getItemCount() {
-        return baoThucList != null ? baoThucList.size() : 0;
+        return baoThucList.size();
     }
 
     public static class BaoThucViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTime, tvRepeat;
+        TextView tvTime,tvRepeat;
         Switch swAlarm;
-
         public BaoThucViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTime = itemView.findViewById(R.id.tvTime);
@@ -130,12 +97,11 @@ public class BaoThucAdapter extends RecyclerView.Adapter<BaoThucAdapter.BaoThucV
         }
     }
 
-    // Interface để fragment gọi BottomSheet khi click item
-    public interface OnItemClickListener {
+    public interface OnItemClickListener{
         void onItemClick(BaoThuc baoThuc);
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
+    public void setOnItemClickListener(OnItemClickListener listener){
         this.listener = listener;
     }
 }

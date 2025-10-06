@@ -7,7 +7,7 @@ import android.util.Log;
 
 import java.util.List;
 
-import Database.DatabaseHelper;
+import Database.AppDatabase;
 import item.EventItem;
 
 public class BootReceiver extends BroadcastReceiver {
@@ -17,11 +17,11 @@ public class BootReceiver extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Log.d("BootReceiver", "Thiết bị vừa khởi động lại -> đặt lại tất cả alarm");
 
-            // Lấy toàn bộ sự kiện trong DB
-            DatabaseHelper db = new DatabaseHelper(context);
-            List<EventItem> events = db.getAllEvents();
+            // Lấy toàn bộ sự kiện từ Room database
+            AppDatabase db = AppDatabase.getInstance(context);
+            List<EventItem> events = db.eventDao().getAll();
 
-            // Đặt lại alarm cho từng event
+            // Đặt lại alarm cho từng sự kiện
             for (EventItem e : events) {
                 EventAlarmScheduler.scheduleEventAlarm(context, e);
                 Log.d("BootReceiver", "Đặt lại alarm cho: " + e.getTitle() + " - " + e.getDateIso());

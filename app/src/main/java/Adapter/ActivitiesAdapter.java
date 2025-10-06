@@ -18,7 +18,10 @@ import item.ActivityItem;
 
 public class ActivitiesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private List<ActivityGroup> groups;
+    private static final int TYPE_HEADER = 0;
+    private static final int TYPE_ITEM = 1;
+
+    private List<ActivityGroup> groups = new ArrayList<>();
     private OnActivityClickListener listener;
 
     public interface OnActivityClickListener {
@@ -35,23 +38,30 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         notifyDataSetChanged();
     }
 
-    @Override
-    public int getItemViewType(int position) {
+    // Dùng để chuyển vị trí Adapter sang nhóm + item
+    private Object getItemAtPosition(int position) {
         int count = 0;
         for (ActivityGroup g : groups) {
-            if (position == count) return 0; // Header
+            if (position == count) return g; // header
             count++;
             int size = g.activities.size();
-            if (position < count + size) return 1; // Activity item
+            if (position < count + size) return g.activities.get(position - count);
             count += size;
         }
-        return 1;
+        return null;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        Object item = getItemAtPosition(position);
+        if (item instanceof ActivityGroup) return TYPE_HEADER;
+        else return TYPE_ITEM;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == 0) {
+        if (viewType == TYPE_HEADER) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_activity_date_header, parent, false);
             return new HeaderViewHolder(v);
@@ -64,32 +74,31 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        int count = 0;
-        for (ActivityGroup g : groups) {
-            if (position == count && holder instanceof HeaderViewHolder) {
-                ((HeaderViewHolder) holder).tvDate.setText(g.date);
-                return;
-            }
-            count++;
-            int size = g.activities.size();
-            if (position < count + size && holder instanceof ActivityViewHolder) {
-                ActivityItem activity = g.activities.get(position - count);
-                ActivityViewHolder avh = (ActivityViewHolder) holder;
-                avh.tvTitle.setText(activity.getTitle());
-                String timeText = "";
-                if (activity.getStartTime() != null && !activity.getStartTime().isEmpty())
-                    timeText += activity.getStartTime();
-                if (activity.getEndTime() != null && !activity.getEndTime().isEmpty())
-                    timeText += " - " + activity.getEndTime();
-                avh.tvTime.setText(timeText);
-                avh.viewColor.setBackgroundColor(Color.parseColor(activity.getColorHex()));
+        Object item = getItemAtPosition(position);
+        if (holder instanceof HeaderViewHolder && item instanceof ActivityGroup) {
+            ((HeaderViewHolder) holder).tvDate.setText(((ActivityGroup) item).date);
+        } else if (holder instanceof ActivityViewHolder && item instanceof ActivityItem) {
+            ActivityItem activity = (ActivityItem) item;
+            ActivityViewHolder avh = (ActivityViewHolder) holder;
 
-                avh.itemView.setOnClickListener(v -> {
-                    if (listener != null) listener.onActivityClick(activity);
-                });
-                return;
+            avh.tvTitle.setText(activity.getTitle());
+
+            String timeText = "";
+            if (activity.getStartTime() != null && !activity.getStartTime().isEmpty())
+                timeText += activity.getStartTime();
+            if (activity.getEndTime() != null && !activity.getEndTime().isEmpty())
+                timeText += " - " + activity.getEndTime();
+            avh.tvTime.setText(timeText);
+
+            try {
+                avh.viewColor.setBackgroundColor(Color.parseColor(activity.getColorHex()));
+            } catch (Exception e) {
+                avh.viewColor.setBackgroundColor(Color.GRAY);
             }
-            count += size;
+
+            avh.itemView.setOnClickListener(v -> {
+                if (listener != null) listener.onActivityClick(activity);
+            });
         }
     }
 
@@ -97,11 +106,12 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     public int getItemCount() {
         int count = 0;
         for (ActivityGroup g : groups) {
-            count += 1 + g.activities.size(); // 1 header + items
+            count += 1 + g.activities.size(); // header + items
         }
         return count;
     }
 
+    // --- ViewHolders ---
     static class HeaderViewHolder extends RecyclerView.ViewHolder {
         TextView tvDate;
         public HeaderViewHolder(@NonNull View itemView) {
@@ -121,6 +131,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    // --- Class nhóm ---
     public static class ActivityGroup {
         String date;
         List<ActivityItem> activities;

@@ -14,21 +14,23 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import Database.DatabaseHelper;
 import com.example.apptg.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import java.util.Calendar;
+import java.util.List;
 
+import Database.AppDatabase;
+import dao.ActivityItemDao;
 import item.ActivityItem;
 
 public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
 
-    private EditText edtTitle, edtDate, edtStartTime, edtEndTime;
+    private EditText edtTitle, edtDate, edtStartTime, edtEndTime, edtDescription;
     private ImageView imgColor, imgSave, imgDelete;
     private ActivityItem activity;
-    private DatabaseHelper db;
+    private ActivityItemDao activityDao;
     private String selectedColor = "#FF0000";
     private Runnable listener;
 
@@ -40,37 +42,54 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
         return sheet;
     }
 
-    public void setListener(Runnable listener) { this.listener = listener; }
+    public void setListener(Runnable listener) {
+        this.listener = listener;
+    }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottomsheet_add_edit_activity, container, false);
+
         edtTitle = view.findViewById(R.id.edt_title);
         edtDate = view.findViewById(R.id.edt_date);
         edtStartTime = view.findViewById(R.id.edt_start_time);
         edtEndTime = view.findViewById(R.id.edt_end_time);
+        edtDescription = view.findViewById(R.id.edt_description); // 🔥 Thêm ô mô tả
         imgColor = view.findViewById(R.id.img_color);
         imgSave = view.findViewById(R.id.img_save);
         imgDelete = view.findViewById(R.id.img_delete);
 
-        db = new DatabaseHelper(getContext());
+        activityDao = AppDatabase.getInstance(requireContext()).activityItemDao();
 
+        // --- Load dữ liệu nếu đang sửa ---
         if (getArguments() != null && getArguments().containsKey("activityId")) {
             int id = getArguments().getInt("activityId");
-            for (ActivityItem a : db.getAllActivities()) {
-                if (a.getId() == id) { activity = a; break; }
-            }
-            if (activity != null) {
-                edtTitle.setText(activity.getTitle());
-                edtDate.setText(activity.getDateIso());
-                edtStartTime.setText(activity.getStartTime());
-                edtEndTime.setText(activity.getEndTime());
-                selectedColor = activity.getColorHex();
-                imgDelete.setVisibility(View.VISIBLE);
-            }
-        } else imgDelete.setVisibility(View.GONE);
+            new Thread(() -> {
+                List<ActivityItem> all = activityDao.getAll();
+                for (ActivityItem a : all) {
+                    if (a.getId() == id) {
+                        activity = a;
+                        break;
+                    }
+                }
+                if (activity != null && getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        edtTitle.setText(activity.getTitle());
+                        edtDate.setText(activity.getDateIso());
+                        edtStartTime.setText(activity.getStartTime());
+                        edtEndTime.setText(activity.getEndTime());
+                        edtDescription.setText(activity.getDescription()); // 🔥 Hiển thị mô tả
+                        selectedColor = activity.getColorHex();
+                        imgDelete.setVisibility(View.VISIBLE);
+                        imgColor.setColorFilter(android.graphics.Color.parseColor(selectedColor));
+                    });
+                }
+            }).start();
+        } else {
+            imgDelete.setVisibility(View.GONE);
+        }
 
         edtDate.setOnClickListener(v -> showDatePicker(edtDate));
         edtStartTime.setOnClickListener(v -> showTimePicker(edtStartTime));
@@ -114,34 +133,42 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
         String date = edtDate.getText().toString().trim();
         String start = edtStartTime.getText().toString().trim();
         String end = edtEndTime.getText().toString().trim();
+        String description = edtDescription.getText().toString().trim();
+
         if (TextUtils.isEmpty(title) || TextUtils.isEmpty(date)) {
             Toast.makeText(getContext(), "Nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (activity == null) {
-            ActivityItem newActivity = new ActivityItem(0, title, date, selectedColor);
-            newActivity.setStartTime(start);
-            newActivity.setEndTime(end);
-            db.insertActivity(newActivity);
-        } else {
-            activity.setTitle(title);
-            activity.setDateIso(date);
-            activity.setStartTime(start);
-            activity.setEndTime(end);
-            activity.setColorHex(selectedColor);
-            db.updateActivity(activity);
-        }
+        new Thread(() -> {
+            if (activity == null) {
+                // ✅ Gọi constructor đầy đủ 6 tham số
+                ActivityItem newActivity = new ActivityItem(title, date, start, end, selectedColor, description);
+                activityDao.insert(newActivity);
+            } else {
+                activity.setTitle(title);
+                activity.setDateIso(date);
+                activity.setStartTime(start);
+                activity.setEndTime(end);
+                activity.setDescription(description);
+                activity.setColorHex(selectedColor);
+                activityDao.update(activity);
+            }
 
-        if (listener != null) listener.run();
-        dismiss();
+            if (listener != null && getActivity() != null)
+                getActivity().runOnUiThread(listener);
+
+            dismiss();
+        }).start();
     }
-
     private void deleteActivity() {
         if (activity != null) {
-            db.deleteActivity(activity.getId());
-            if (listener != null) listener.run();
-            dismiss();
+            new Thread(() -> {
+                activityDao.delete(activity);
+                if (listener != null && getActivity() != null)
+                    getActivity().runOnUiThread(listener);
+                dismiss();
+            }).start();
         }
     }
 
