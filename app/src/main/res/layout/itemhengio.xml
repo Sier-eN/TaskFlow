@@ -3,10 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="200dp"
+    android:layout_margin="10dp"
     android:background="@color/maunensanghon"
     android:padding="20dp">
 
-    <!-- ❌ Nút X ở góc phải trên -->
+    <!-- Nút X ở góc phải trên -->
     <ImageView
         android:id="@+id/btnClose"
         android:layout_width="28dp"
@@ -19,7 +20,7 @@
         android:clickable="true"
         android:focusable="true" />
 
-    <!-- 🕒 Vòng tròn đếm ngược -->
+    <!-- Vòng tròn đếm ngược -->
     <FrameLayout
         android:id="@+id/circleContainer"
         android:layout_width="120dp"
@@ -48,9 +49,9 @@
             android:textColor="@color/mautrangnhathon" />
     </FrameLayout>
 
-    <!-- 🕰 Thông tin hẹn giờ -->
+    <!-- Thông tin hẹn giờ -->
 
-    <!-- 🔘 Nút +1:00 -->
+    <!-- Nút +1:00 -->
 
     <TextView
         android:id="@+id/tvTimerInfo"
