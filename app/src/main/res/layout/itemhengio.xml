@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@color/maunensanghon"
+    android:padding="20dp">
+
+    <!-- ❌ Nút X ở góc phải trên -->
+    <ImageView
+        android:id="@+id/btnClose"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/xoa"
+        app:tint="@color/mautrangnhathon"
+        android:contentDescription="Đóng"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- 🕒 Vòng tròn đếm ngược -->
+    <FrameLayout
+        android:id="@+id/circleContainer"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true">
+
+        <ProgressBar
+            android:id="@+id/progressCircle"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="false"
+            android:max="60"
+            android:progress="30"
+            android:progressDrawable="@drawable/circle_progress" />
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="00:01:30"
+            android:textSize="17dp"
+            android:textStyle="bold"
+            android:textColor="@color/mautrangnhathon" />
+    </FrameLayout>
+
+    <!-- 🕰 Thông tin hẹn giờ -->
+
+    <!-- 🔘 Nút +1:00 -->
+
+    <TextView
+        android:id="@+id/tvTimerInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/circleContainer"
+        android:layout_alignStart="@id/circleContainer"
+        android:layout_marginStart="-1dp"
+        android:layout_marginTop="-143dp"
+        android:fontFamily="@font/robotocondensed"
+        android:text="Bộ hẹn giờ: 0h 1m 30s"
+        android:textColor="@color/mautrangnhathon"
+        android:textSize="17sp"
+        android:textStyle="italic" />
+
+    <Button
+        android:id="@+id/btnAddTime"
+        android:layout_width="90dp"
+        android:layout_height="50dp"
+        android:text="+1:00"
+        android:textColor="@color/mautrangnhathon"
+        android:backgroundTint="@color/green_dark"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/circleContainer"
+        android:layout_marginStart="16dp" />
+
+    <!-- ⏯ Nút Play/Pause -->
+    <ImageView
+        android:id="@+id/btnPlay"
+        android:layout_width="70dp"
+        android:layout_height="50dp"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/btnAddTime"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/bg_rounded"
+        android:src="@drawable/play"
+        app:tint="@color/mautrangnhathon"
+        android:contentDescription="Play"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <!-- 🔁 Nút Reset -->
+    <ImageView
+        android:id="@+id/btnReset"
+        android:layout_width="70dp"
+        android:layout_height="50dp"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/btnPlay"
+        android:layout_marginStart="16dp"
+        android:background="@drawable/bg_rounded"
+        android:src="@drawable/reset"
+        app:tint="@color/mautrangnhathon"
+        android:contentDescription="Reset"
+        android:clickable="true"
+        android:focusable="true" />
+
+</RelativeLayout>
