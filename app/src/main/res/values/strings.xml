@@ -4,9 +4,13 @@
     <string name="thoigianbieu">Hoạt Động</string>
     <string name="baothuc">Báo Thức</string>
     <string name="themtgb">Thêm TGB</string>
+    <string name="hengio">Hẹn Giờ</string>
+    <string name="bamgio">Bấm Giờ</string>
     <string-array name="sort_options">
         <item>Theo ngày</item>
         <item>Theo tuần</item>
         <item>Theo tháng</item>
     </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

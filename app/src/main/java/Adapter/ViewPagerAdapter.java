@@ -5,8 +5,10 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
+import Fragments.BamGioFragment;
 import Fragments.BaothucFragment;
 import Fragments.DanhSachTGBFragment;
+import Fragments.HenGioFragment;
 import Fragments.HomeFragment;
 import Fragments.ThemTGBFragment;
 
@@ -24,9 +26,13 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
             case 1:
                 return new BaothucFragment();
             case 2:
+                return new HenGioFragment();
+            case 3:
+                return new BamGioFragment();
+            case 4:
                 return new DanhSachTGBFragment();
-//            case 3:
-//                return new ThemTGBFragment();
+            case 5:
+                return new ThemTGBFragment();
             default:
                 return new HomeFragment();
         }
@@ -34,6 +40,6 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 6;
     }
 }

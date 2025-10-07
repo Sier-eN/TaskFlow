@@ -6,10 +6,16 @@
     <item android:id="@+id/baothuc"
         android:title="@string/baothuc"
         android:icon="@drawable/baothuc"/>
+    <item android:id="@+id/hengio"
+        android:title="@string/hengio"
+        android:icon="@drawable/hengio"/>
+    <item android:id="@+id/bamgio"
+        android:title="@string/bamgio"
+        android:icon="@drawable/bamgio"/>
     <item android:id="@+id/thoigianbieu"
         android:title="@string/thoigianbieu"
         android:icon="@drawable/thoigianbieu"/>
-<!--    <item android:id="@+id/themtgb"-->
-<!--        android:title="@string/themtgb"-->
-<!--        android:icon="@drawable/themtgb"/>-->
+    <item android:id="@+id/themtgb"
+        android:title="@string/themtgb"
+        android:icon="@drawable/themtgb"/>
 </menu>

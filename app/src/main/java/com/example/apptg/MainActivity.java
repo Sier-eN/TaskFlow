@@ -74,14 +74,18 @@ public class MainActivity extends AppCompatActivity {
         // menuId -> page
         menuToPage.put(R.id.home, 0);
         menuToPage.put(R.id.baothuc, 1);
-        menuToPage.put(R.id.thoigianbieu, 2);
-//        menuToPage.put(R.id.themtgb, 3);
+        menuToPage.put(R.id.hengio, 2);
+        menuToPage.put(R.id.bamgio, 3);
+        menuToPage.put(R.id.thoigianbieu, 4);
+        menuToPage.put(R.id.themtgb, 5);
 
         // page -> menuId
         pageToMenu.put(0, R.id.home);
         pageToMenu.put(1, R.id.baothuc);
-        pageToMenu.put(2, R.id.thoigianbieu);
-//        pageToMenu.put(3, R.id.themtgb);
+        pageToMenu.put(2, R.id.hengio);
+        pageToMenu.put(3, R.id.bamgio);
+        pageToMenu.put(4, R.id.thoigianbieu);
+        pageToMenu.put(5, R.id.themtgb);
     }
 
     private void setUpViewPager() {
@@ -92,6 +96,6 @@ public class MainActivity extends AppCompatActivity {
         viewPager.setAdapter(viewPagerAdapter);
 
         // giữ sẵn 3 fragment bên trái/phải để vuốt mượt
-        viewPager.setOffscreenPageLimit(3);
+        viewPager.setOffscreenPageLimit(6);
     }
 }
