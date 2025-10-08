@@ -9,12 +9,12 @@ public class ActivityItem {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
-    private String title;        // Tên hoạt động
-    private String dateIso;      // Ngày yyyy-MM-dd
-    private String startTime;    // Giờ bắt đầu HH:mm
-    private String endTime;      // Giờ kết thúc HH:mm
-    private String colorHex;     // Màu hiển thị (#RRGGBB)
-    private String description;  // Mô tả hoạt động
+    private String title;
+    private String dateIso;
+    private String startTime;
+    private String endTime;
+    private String colorHex;
+    private String description;
 
     // Constructor khi tạo mới
     public ActivityItem(String title, String dateIso, String startTime, String endTime, String colorHex, String description) {

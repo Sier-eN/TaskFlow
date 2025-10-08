@@ -22,7 +22,6 @@ public interface BaoThucDao {
     @Delete
     void delete(BaoThuc baoThuc);
 
-    // ✅ Sửa lại đúng tên bảng
     @Query("SELECT * FROM Alarm ORDER BY h ASC, m ASC")
     List<BaoThuc> getAll();
 

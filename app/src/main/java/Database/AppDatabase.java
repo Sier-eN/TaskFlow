@@ -26,7 +26,7 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract BaoThucDao baoThucDao();
     public abstract EventDao eventDao();
     public abstract ActivityItemDao activityItemDao();
-    public abstract HenGioDao henGioDao(); // ✅ thêm dòng này
+    public abstract HenGioDao henGioDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {

@@ -85,7 +85,6 @@ public class BottomSheetHenGio extends BottomSheetDialogFragment {
         tvTime.setText(String.format("%02dh %02dm %02ds", gio, phut, giay));
     }
 
-    // Lưu vào CSDL và cập nhật RecyclerView
     private void saveToDatabase() {
         String text = tvTime.getText().toString();
         String[] parts = text.replace("h", "").replace("m", "").replace("s", "").trim().split(" ");

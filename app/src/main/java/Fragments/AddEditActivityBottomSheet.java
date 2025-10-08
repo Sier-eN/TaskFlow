@@ -3,12 +3,15 @@ package Fragments;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,20 +34,22 @@ import item.ActivityItem;
 
 public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
 
+    private static final int MAX_DESCRIPTION_LENGTH = 200;
+
     private EditText edtTitle, edtDate, edtStartTime, edtEndTime, edtDescription;
+    private TextView tvDescriptionCount;
     private ImageView imgSave, imgDelete;
     private RecyclerView rvColors;
+
     private ActivityItem activity;
     private ActivityItemDao activityDao;
-    private String selectedColor = "#F44336"; // Mặc định đỏ
+    private String selectedColor = "#F44336"; // màu mặc định
     private Runnable listener;
 
-    // 10 màu
     private List<String> colorList = Arrays.asList(
             "#F44336", "#4CAF50", "#2196F3", "#FFEB3B", "#9C27B0",
             "#FF9800", "#00BCD4", "#E91E63", "#795548", "#607D8B"
     );
-
     private ColorAdapter colorAdapter;
 
     public static AddEditActivityBottomSheet newInstance(ActivityItem activity) {
@@ -65,35 +70,31 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.bottomsheet_add_edit_activity, container, false);
 
+        // --- Khởi tạo view ---
         edtTitle = view.findViewById(R.id.edt_title);
         edtDate = view.findViewById(R.id.edt_date);
         edtStartTime = view.findViewById(R.id.edt_start_time);
         edtEndTime = view.findViewById(R.id.edt_end_time);
         edtDescription = view.findViewById(R.id.edt_description);
+        tvDescriptionCount = view.findViewById(R.id.tv_description_count);
         imgSave = view.findViewById(R.id.img_save);
         imgDelete = view.findViewById(R.id.img_delete);
         rvColors = view.findViewById(R.id.rv_colors);
 
         activityDao = AppDatabase.getInstance(requireContext()).activityItemDao();
 
-        // Setup RecyclerView chọn màu
-        colorAdapter = new ColorAdapter(getContext(), colorList, (colorHex, pos) -> {
-            selectedColor = colorHex;
-        });
+        // --- Setup RecyclerView màu ---
+        colorAdapter = new ColorAdapter(getContext(), colorList, (colorHex, pos) -> selectedColor = colorHex);
         rvColors.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         rvColors.setAdapter(colorAdapter);
 
-        // Load dữ liệu nếu đang sửa
+        // --- Load dữ liệu nếu đang sửa ---
         if (getArguments() != null && getArguments().containsKey("activityId")) {
             int id = getArguments().getInt("activityId");
             new Thread(() -> {
                 List<ActivityItem> all = activityDao.getAll();
-                for (ActivityItem a : all) {
-                    if (a.getId() == id) {
-                        activity = a;
-                        break;
-                    }
-                }
+                for (ActivityItem a : all) if (a.getId() == id) { activity = a; break; }
+
                 if (activity != null && getActivity() != null) {
                     getActivity().runOnUiThread(() -> {
                         edtTitle.setText(activity.getTitle());
@@ -106,6 +107,8 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
 
                         int pos = colorList.indexOf(selectedColor);
                         if (pos != -1) colorAdapter.setSelectedPos(pos);
+
+                        updateDescriptionCount(activity.getDescription());
                     });
                 }
             }).start();
@@ -113,10 +116,24 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
             imgDelete.setVisibility(View.GONE);
         }
 
+        // --- Xử lý chọn ngày/giờ ---
         edtDate.setOnClickListener(v -> showDatePicker(edtDate));
         edtStartTime.setOnClickListener(v -> showTimePicker(edtStartTime));
         edtEndTime.setOnClickListener(v -> showTimePicker(edtEndTime));
 
+        // --- Xử lý mô tả ---
+        edtDescription.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void afterTextChanged(Editable s) {
+                handleDescriptionInput();
+            }
+        });
+
+        // --- Lưu/xóa ---
         imgSave.setOnClickListener(v -> saveActivity());
         imgDelete.setOnClickListener(v -> deleteActivity());
 
@@ -137,6 +154,33 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
                 (view, hour, minute) -> edt.setText(String.format("%02d:%02d", hour, minute)),
                 c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE), true);
         tp.show();
+    }
+
+    private void handleDescriptionInput() {
+        String text = edtDescription.getText().toString();
+        // Loại bỏ dấu cách để đếm ký tự
+        String textWithoutSpaces = text.replace(" ", "");
+
+        if (textWithoutSpaces.length() > MAX_DESCRIPTION_LENGTH) {
+            // Giữ đúng 200 ký tự không tính dấu cách
+            int count = 0;
+            StringBuilder sb = new StringBuilder();
+            for (char c : text.toCharArray()) {
+                if (c != ' ') count++;
+                if (count > MAX_DESCRIPTION_LENGTH) break;
+                sb.append(c);
+            }
+            edtDescription.setText(sb.toString());
+            edtDescription.setSelection(sb.length());
+            Toast.makeText(getContext(), "Mô tả không được vượt quá 200 ký tự (không tính khoảng trắng)", Toast.LENGTH_SHORT).show();
+            textWithoutSpaces = sb.toString().replace(" ", "");
+        }
+
+        updateDescriptionCount(textWithoutSpaces);
+    }
+
+    private void updateDescriptionCount(String textWithoutSpaces) {
+        tvDescriptionCount.setText(textWithoutSpaces.length() + "/" + MAX_DESCRIPTION_LENGTH + " ký tự");
     }
 
     private void saveActivity() {

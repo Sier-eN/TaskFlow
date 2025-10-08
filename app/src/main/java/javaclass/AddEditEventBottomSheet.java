@@ -85,7 +85,6 @@ public class AddEditEventBottomSheet extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(v, savedInstanceState);
 
-        // ✅ Dùng Room Database thay cho DatabaseHelper
         eventDao = AppDatabase.getInstance(requireContext()).eventDao();
 
         etTitle = v.findViewById(R.id.et_title);
