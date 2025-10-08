@@ -1,5 +1,7 @@
 package Fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BamGioFragment extends Fragment {
+
+    private static final String PREFS_NAME = "stopwatch_prefs";
 
     private TextView tvTimer;
     private Button btnStartPause, btnLap, btnReset;
@@ -51,7 +55,7 @@ public class BamGioFragment extends Fragment {
     };
 
     public BamGioFragment() {
-        // Bắt buộc để Android không báo lỗi
+        // Bắt buộc constructor rỗng
     }
 
     @Override
@@ -70,21 +74,23 @@ public class BamGioFragment extends Fragment {
         btnReset = view.findViewById(R.id.btnReset);
         layoutLapTimes = view.findViewById(R.id.layoutLapTimes);
 
+        // Load dữ liệu từ SharedPreferences
+        loadData();
+
         btnStartPause.setOnClickListener(v -> {
             if (!isRunning) {
-                // Bắt đầu hoặc tiếp tục
                 startTime = System.currentTimeMillis() - elapsedTime;
                 handler.post(updateTimer);
                 isRunning = true;
                 btnStartPause.setText("Tạm dừng");
                 btnLap.setVisibility(View.VISIBLE);
             } else {
-                // Tạm dừng
                 handler.removeCallbacks(updateTimer);
                 elapsedTime = System.currentTimeMillis() - startTime;
                 isRunning = false;
                 btnStartPause.setText("Tiếp tục");
                 btnLap.setVisibility(View.GONE);
+                saveData(); // Lưu khi tạm dừng
             }
         });
 
@@ -110,7 +116,6 @@ public class BamGioFragment extends Fragment {
         tvLap.setTextSize(18);
         tvLap.setPadding(0, 8, 0, 8);
 
-        // Hiệu ứng trượt + mờ dần khi thêm
         TranslateAnimation slide = new TranslateAnimation(300, 0, 0, 0);
         slide.setDuration(300);
         AlphaAnimation fade = new AlphaAnimation(0f, 1f);
@@ -120,8 +125,9 @@ public class BamGioFragment extends Fragment {
 
         layoutLapTimes.addView(tvLap, 0);
 
-        // Cập nhật highlight nhanh nhất / chậm nhất
         highlightExtremes();
+
+        saveData(); // Lưu dữ liệu sau mỗi lap
     }
 
     private void highlightExtremes() {
@@ -142,13 +148,11 @@ public class BamGioFragment extends Fragment {
             }
         }
 
-        // Reset màu tất cả
         for (int i = 0; i < layoutLapTimes.getChildCount(); i++) {
             TextView tv = (TextView) layoutLapTimes.getChildAt(i);
             tv.setTextColor(ContextCompat.getColor(requireContext(), R.color.mautrangnhathon));
         }
 
-        // Vì lap mới nhất thêm ở vị trí 0 -> cần đảo index lại
         int visibleMin = layoutLapTimes.getChildCount() - 1 - minIndex;
         int visibleMax = layoutLapTimes.getChildCount() - 1 - maxIndex;
 
@@ -173,11 +177,73 @@ public class BamGioFragment extends Fragment {
         layoutLapTimes.removeAllViews();
         btnStartPause.setText("Bắt đầu");
         btnLap.setVisibility(View.GONE);
+        saveData(); // Xóa dữ liệu trong SharedPreferences
+    }
+
+    // ===== LƯU DỮ LIỆU VÀ LOAD DỮ LIỆU =====
+
+    private void saveData() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong("elapsedTime", isRunning ? System.currentTimeMillis() - startTime : elapsedTime);
+        editor.putInt("lapCount", lapCount);
+
+        // Lưu danh sách lap dưới dạng CSV
+        StringBuilder sb = new StringBuilder();
+        for (Long lap : lapTimes) {
+            sb.append(lap).append(",");
+        }
+        editor.putString("lapTimes", sb.toString());
+        editor.apply();
+    }
+
+    private void loadData() {
+        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        elapsedTime = prefs.getLong("elapsedTime", 0L);
+        lapCount = prefs.getInt("lapCount", 0);
+        String lapStr = prefs.getString("lapTimes", "");
+
+        lapTimes.clear();
+        layoutLapTimes.removeAllViews();
+
+        if (!lapStr.isEmpty()) {
+            String[] parts = lapStr.split(",");
+            for (String s : parts) {
+                if (!s.isEmpty()) {
+                    lapTimes.add(Long.parseLong(s));
+                }
+            }
+        }
+
+        // Hiển thị các lap cũ
+        for (int i = 0; i < lapTimes.size(); i++) {
+            long diff = lapTimes.get(i);
+            int minutes = (int) (diff / 1000) / 60;
+            int seconds = (int) (diff / 1000) % 60;
+            int millis = (int) (diff % 1000) / 10;
+
+            TextView tvLap = new TextView(getContext());
+            tvLap.setText(String.format("Lần %d: %02d:%02d.%02d", i + 1, minutes, seconds, millis));
+            tvLap.setTextColor(ContextCompat.getColor(requireContext(), R.color.mautrangnhathon));
+            tvLap.setTextSize(18);
+            tvLap.setPadding(0, 8, 0, 8);
+
+            layoutLapTimes.addView(tvLap, 0);
+        }
+
+        highlightExtremes();
+
+        // Hiển thị timer hiện tại
+        int minutes = (int) (elapsedTime / 1000) / 60;
+        int seconds = (int) (elapsedTime / 1000) % 60;
+        int millis = (int) (elapsedTime % 1000) / 10;
+        tvTimer.setText(String.format("%02d:%02d.%02d", minutes, seconds, millis));
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         handler.removeCallbacks(updateTimer);
+        saveData(); // lưu khi thoát fragment
     }
 }
