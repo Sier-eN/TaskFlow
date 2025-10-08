@@ -13,14 +13,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.apptg.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 
+import Adapter.ColorAdapter;
 import Database.AppDatabase;
 import dao.ActivityItemDao;
 import item.ActivityItem;
@@ -28,11 +32,20 @@ import item.ActivityItem;
 public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
 
     private EditText edtTitle, edtDate, edtStartTime, edtEndTime, edtDescription;
-    private ImageView imgColor, imgSave, imgDelete;
+    private ImageView imgSave, imgDelete;
+    private RecyclerView rvColors;
     private ActivityItem activity;
     private ActivityItemDao activityDao;
-    private String selectedColor = "#FF0000";
+    private String selectedColor = "#F44336"; // Mặc định đỏ
     private Runnable listener;
+
+    // 10 màu
+    private List<String> colorList = Arrays.asList(
+            "#F44336", "#4CAF50", "#2196F3", "#FFEB3B", "#9C27B0",
+            "#FF9800", "#00BCD4", "#E91E63", "#795548", "#607D8B"
+    );
+
+    private ColorAdapter colorAdapter;
 
     public static AddEditActivityBottomSheet newInstance(ActivityItem activity) {
         AddEditActivityBottomSheet sheet = new AddEditActivityBottomSheet();
@@ -56,14 +69,21 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
         edtDate = view.findViewById(R.id.edt_date);
         edtStartTime = view.findViewById(R.id.edt_start_time);
         edtEndTime = view.findViewById(R.id.edt_end_time);
-        edtDescription = view.findViewById(R.id.edt_description); // 🔥 Thêm ô mô tả
-        imgColor = view.findViewById(R.id.img_color);
+        edtDescription = view.findViewById(R.id.edt_description);
         imgSave = view.findViewById(R.id.img_save);
         imgDelete = view.findViewById(R.id.img_delete);
+        rvColors = view.findViewById(R.id.rv_colors);
 
         activityDao = AppDatabase.getInstance(requireContext()).activityItemDao();
 
-        // --- Load dữ liệu nếu đang sửa ---
+        // Setup RecyclerView chọn màu
+        colorAdapter = new ColorAdapter(getContext(), colorList, (colorHex, pos) -> {
+            selectedColor = colorHex;
+        });
+        rvColors.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        rvColors.setAdapter(colorAdapter);
+
+        // Load dữ liệu nếu đang sửa
         if (getArguments() != null && getArguments().containsKey("activityId")) {
             int id = getArguments().getInt("activityId");
             new Thread(() -> {
@@ -80,10 +100,12 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
                         edtDate.setText(activity.getDateIso());
                         edtStartTime.setText(activity.getStartTime());
                         edtEndTime.setText(activity.getEndTime());
-                        edtDescription.setText(activity.getDescription()); // 🔥 Hiển thị mô tả
+                        edtDescription.setText(activity.getDescription());
                         selectedColor = activity.getColorHex();
                         imgDelete.setVisibility(View.VISIBLE);
-                        imgColor.setColorFilter(android.graphics.Color.parseColor(selectedColor));
+
+                        int pos = colorList.indexOf(selectedColor);
+                        if (pos != -1) colorAdapter.setSelectedPos(pos);
                     });
                 }
             }).start();
@@ -94,17 +116,6 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
         edtDate.setOnClickListener(v -> showDatePicker(edtDate));
         edtStartTime.setOnClickListener(v -> showTimePicker(edtStartTime));
         edtEndTime.setOnClickListener(v -> showTimePicker(edtEndTime));
-
-        imgColor.setColorFilter(android.graphics.Color.parseColor(selectedColor));
-        imgColor.setOnClickListener(v -> {
-            // Chọn màu: click lần lượt 5 màu
-            if ("#FF0000".equals(selectedColor)) selectedColor = "#00FF00";
-            else if ("#00FF00".equals(selectedColor)) selectedColor = "#0000FF";
-            else if ("#0000FF".equals(selectedColor)) selectedColor = "#FFFF00";
-            else if ("#FFFF00".equals(selectedColor)) selectedColor = "#FF00FF";
-            else selectedColor = "#FF0000";
-            imgColor.setColorFilter(android.graphics.Color.parseColor(selectedColor));
-        });
 
         imgSave.setOnClickListener(v -> saveActivity());
         imgDelete.setOnClickListener(v -> deleteActivity());
@@ -142,7 +153,6 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
 
         new Thread(() -> {
             if (activity == null) {
-                // ✅ Gọi constructor đầy đủ 6 tham số
                 ActivityItem newActivity = new ActivityItem(title, date, start, end, selectedColor, description);
                 activityDao.insert(newActivity);
             } else {
@@ -161,6 +171,7 @@ public class AddEditActivityBottomSheet extends BottomSheetDialogFragment {
             dismiss();
         }).start();
     }
+
     private void deleteActivity() {
         if (activity != null) {
             new Thread(() -> {

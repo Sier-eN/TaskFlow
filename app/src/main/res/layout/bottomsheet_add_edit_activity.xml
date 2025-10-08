@@ -99,15 +99,22 @@
             android:layout_marginTop="4dp"
             android:fontFamily="@font/robotocondensed" />
 
-        <ImageView
-            android:id="@+id/img_color"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/color"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chọn màu:"
+            android:textColor="@color/mautrangnhathon"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_circle"
-            android:contentDescription="Chọn màu"
-            android:padding="8dp" />
+            android:fontFamily="@font/robotocondensed"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_colors"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:overScrollMode="never"/>
+
 
         <LinearLayout
             android:layout_width="match_parent"
