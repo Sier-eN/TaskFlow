@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AppTG</string>
+    <string name="app_name">TaskFlow</string>
     <string name="home">Sự Kiện</string>
     <string name="thoigianbieu">Hoạt Động</string>
     <string name="baothuc">Báo Thức</string>
